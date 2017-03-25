@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta name="viewport" content="initial-scale=1.0, user-scalable=no">
+    <meta charset="utf-8">
+    <title>Reverse Geocoding</title>
+    <style>
+        /* Always set the map height explicitly to define the size of the div
+       * element that contains the map. */
+        
+        #map {
+            height: 100%;
+        }
+        /* Optional: Makes the sample page fill the window. */
+        
+        html,
+        body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+        }
+        
+        #floating-panel {
+            position: absolute;
+            top: 10px;
+            left: 25%;
+            z-index: 5;
+            background-color: #fff;
+            padding: 5px;
+            border: 1px solid #999;
+            text-align: center;
+            font-family: 'Roboto', 'sans-serif';
+            line-height: 30px;
+            padding-left: 10px;
+        }
+        
+        #floating-panel {
+            position: absolute;
+            top: 5px;
+            left: 50%;
+            margin-left: -180px;
+            width: 350px;
+            z-index: 5;
+            background-color: #fff;
+            padding: 5px;
+            border: 1px solid #999;
+        }
+        
+        #latlng {
+            width: 225px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div id="map"></div>
+    <script src="words.js"></script>
+    <script>
+        var x = document.getElementById("demo");
+
+        function initMap() {
+            var map = new google.maps.Map(document.getElementById('map'), {
+                zoom: 18,
+                center: {
+                    lat: 40.731,
+                    lng: -73.997
+                }
+            });
+
+            var geocoder = new google.maps.Geocoder;
+            var infowindow = new google.maps.InfoWindow;
+            // Try HTML5 geolocation.
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(function(position) {
+                    var pos = {
+                        lat: position.coords.latitude,
+                        lng: position.coords.longitude
+                    };
+                    // ideaTester2(pos,)
+
+                    infowindow.setPosition(pos);
+                    infowindow.setContent('Location found.');
+                    map.setCenter(pos);
+                }, function() {
+                    handleLocationError(true, infowindow, map.getCenter());
+                });
+            } else {
+                // Browser doesn't support Geolocation
+                handleLocationError(false, infowindow, map.getCenter());
+            }
+
+        }
+
+        function handleLocationError(browserHasGeolocation, infoWindow, pos) {
+            infowindow.setPosition(pos);
+            infowindow.setContent(browserHasGeolocation ?
+                'Error: The Geolocation service failed.' :
+                'Error: Your browser doesn\'t support geolocation.');
+        }
+
+        function geocodeAddress(geocoder, resultsMap) {
+            var address = document.getElementById('address').value;
+            geocoder.geocode({
+                'address': address
+            }, function(results, status) {
+                if (status === 'OK') {
+                    resultsMap.setCenter(results[0].geometry.location);
+                    var marker = new google.maps.Marker({
+                        map: resultsMap,
+                        position: results[0].geometry.location
+                    });
+                } else {
+                    alert('Geocode was not successful for the following reason: ' + status);
+                }
+            });
+
+        }
+
+        function geocodeLatLng(geocoder, ev, infowindow) {
+
+
+            var latlng = {
+                lat: parseFloat(ev.latlng.lat),
+                lng: parseFloat(ev.latlng.lng)
+            };
+            geocoder.geocode({
+                'location': latlng
+            }, function(results, status) {
+                if (status === 'OK') {
+                    if (results[1]) {
+
+                        // window.alert(results[1].formatted_address);
+                        document.getElementById("addr").innerHTML = results[1].formatted_address;
+                    } else {
+                        console.log('No results found');
+                    }
+                } else {
+                    console.log('Geocoder failed due to: ' + status);
+                }
+            });
+        }
+
+        function ideaTester(map, city = {
+            lat: 0,
+            long: 0
+        }, currentLoc = {
+            lat: 0,
+            long: 0
+        }, words = []) {
+
+            var latResult = city.lat - currentLoc.lat;
+            var longResult = city.long - currentLoc.long;
+            var encodeLat = latResult * 1024;
+            var encodeLong = longResult * 1024;
+            if (!words) return "".toString();
+            return words[encodeLat].toString() + "_" + words[encodeLong].toString();
+        }
+
+        function ideaTester2(city = {
+            lat: 0,
+            long: 0
+        }, currentLoc = {
+            lat: 0,
+            long: 0
+        }) {
+            var factor = 24;
+            var city_begin = {
+                "lat": city.lat,
+                "long": city.long
+            };
+            var current = {
+                "lat": currentLoc.lat,
+                "long": currentLoc.long
+            };
+            lat_diff = (current.lat - city_begin.lat) * factor;
+            console.log("lat_diff" + lat_diff);
+
+            lat_diff_level_1 = Math.floor(lat_diff);
+            console.log("lat_diff_level_1" + lat_diff_level_1);
+
+            lat_diff_level_2 = (lat_diff - lat_diff_level_1) * factor;
+            console.log("lat 2" + lat_diff_level_2);
+            long_diff = (current.long - city_begin.long) * factor;
+            console.log("long_diff" + long_diff);
+
+            long_diff_level_1 = Math.floor(long_diff);
+            console.log("lat 2" + lat_diff_level_2);
+
+            long_diff_level_2 = (long_diff - long_diff_level_1) * factor;
+            console.log("long 2" + long_diff_level_2);
+            level_1_word_index = (lat_diff_level_1 << 5) | (long_diff_level_1);
+            level_2_word_index = (lat_diff_level_2 << 5) | (long_diff_level_2);
+            console.log("Here: " + level_1_word_index + " : " + level_2_word_index);
+            wordTable[level_1_word_index] + " " + wordTable[level_2_word_index];
+            console.log(wordTable[level_1_word_index] + " " + wordTable[level_2_word_index])
+        }
+    </script>
+    <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAjFPPeRvpbJHBU0K6KeJ8P7YAMgdG8v0I&callback=initMap">
+    </script>
+</body>
+
+</html>
